@@ -9,7 +9,7 @@ class Message(object):
 
     def __init__(self, id_str, dst, data, signature):
         self.id_str    = id_str   #ID string of the node
-        self.dst       = dst_addr #IP:port address of the destination
+        self.dst       = dst      #IP:port address of the destination
         self.data      = data     #Data of the message being sent
         self.signature = self.sign()
 
@@ -19,10 +19,10 @@ class Message(object):
                 sort_keys=True, indent=4)
 
     #TODO: Parse JSON blob into Message object
-    def from_json(json_blob):
+    def from_json(self, json_blob):
         """Call the decoder function, which returns a quadruple.
         Transfer the data from the quadruple into the fields of the Message"""
-        msg = json.loads(blob, object_hook=message_decoder)
+        msg = json.loads(json_blob, object_hook=message_decoder)
         self.id_str    = msg[0]
         self.dst_addr  = msg[1]
         self.data      = msg[2]
@@ -36,15 +36,15 @@ class Message(object):
         #Create a signer with SHA512
         signer = key.signer(
             padding.PSS(
-                mgf = padding.MGF1(hashes.SHA512()),
-                salt_length = padding.PSS.MAX_LENGTH
+                mgf=padding.MGF1(hashes.SHA512()),
+                salt_length=padding.PSS.MAX_LENGTH
             ),
             hashes.SHA512()
         )
 
-        signer.update(id_str)
-        signer.update(dst)
-        signer.update(data)
+        signer.update(self.id_str)
+        signer.update(self.dst)
+        signer.update(self.data)
         self.signature = m.finalize()
 
     #TODO: Verify message with crypto
@@ -53,8 +53,8 @@ class Message(object):
         verifier = key.verify(
             self.signature,
             padding.PSS(
-                mgf = padding.MGF1(hashes.SHA256()),
-                salt_length = padding.PSS.MAX_LENGTH
+                mgf=padding.MGF1(hashes.SHA256()),
+                salt_length=padding.PSS.MAX_LENGTH
             ),
         )
         verifier.update(self.id_str)
