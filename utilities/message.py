@@ -1,31 +1,38 @@
 import json
 import base64
+from hashlib import md5
+from time import time
 
-#TODO: Create Messsage class
+# TODO: Create Messsage class
 class Message(object):
 
     def __init__(self, id_str, dst, data, signature):
-        self.id_str    = id_str   #ID string of the node
-        self.dst       = dst      #IP:port address of the destination
-        self.data      = data     #Data of the message being sent
-        #self.signature = self.sign()
+        # Time is sufficient for entropy since it is just needs to be unique, not crypto related
+        if not id_str:
+            self.id_str = md5().hexdigest(time())
+        else:
+            self.id_str = id_str
 
-    #TODO: Convert Message object to JSON blob
+        self.dst  = dst      # IP:port address of the destination
+        self.data = data     # Data of the message being sent
+        # self.signature = self.sign()
+
+    # TODO: Convert Message object to JSON blob
     def to_json(self):
         json.dumps(self, default=lambda o: o.__dict__,
                 sort_keys=True, indent=4)
 
-    #TODO: Parse JSON blob into Message object
+    # TODO: Parse JSON blob into Message object
     def from_json(self, json_blob):
         """Call the decoder function, which returns a quadruple.
         Transfer the data from the quadruple into the fields of the Message"""
         msg = json.loads(json_blob, object_hook=message_decoder)
-        self.id_str    = msg[0]
-        self.dst_addr  = msg[1]
-        self.data      = msg[2]
-        #self.signature = msg[3]
+        self.id_str   = msg[0]
+        self.dst_addr = msg[1]
+        self.data     = msg[2]
+        # self.signature = msg[3]
 
-    ##TODO: Sign message
+    #TODO: Sign message
     #def sign(self, key):
     #    """Key will be passed in by the caller.
     #    This is determined by whether the node is a node or the sink"""
@@ -66,13 +73,14 @@ class Message(object):
     #    This is determined by whether the node is a node or the sink"""
     #    pass
 
+
 def message_decoder(obj):
     if '__type__' in obj and obj['__type__'] == 'Message':
         return (obj['id_str'], obj['dst_addr'], obj['data'])#, obj['signature'])
 
 
 #TODO: Send_message function
-#Probably shouldn't be a method of the Message class
+# Probably shouldn't be a method of the Message class
 def send_message():
     """You provide it data and then it will marshall the JSON and send it
     Tell it the destination, which is previously determined through the election process"""
