@@ -6,7 +6,7 @@ from time import time
 # TODO: Create Messsage class
 class Message(object):
 
-    def __init__(self, id_str, dst, data, signature):
+    def __init__(self, id_str=None, dst=None, data=None):
         # Time is sufficient for entropy since it is just needs to be unique, not crypto related
         if not id_str:
             self.id_str = md5().hexdigest(time())
@@ -19,18 +19,20 @@ class Message(object):
 
     # TODO: Convert Message object to JSON blob
     def to_json(self):
-        json.dumps(self, default=lambda o: o.__dict__,
+        return json.dumps(self, default=lambda o: o.__dict__,
                 sort_keys=True, indent=4)
 
     # TODO: Parse JSON blob into Message object
     def from_json(self, json_blob):
         """Call the decoder function, which returns a quadruple.
         Transfer the data from the quadruple into the fields of the Message"""
-        msg = json.loads(json_blob, object_hook=message_decoder)
+        msg = Message()
+        msg.__dict__  = json.loads(json_blob)#, object_hook=message_decoder)
         self.id_str   = msg[0]
         self.dst_addr = msg[1]
         self.data     = msg[2]
-        # self.signature = msg[3]
+    # self.signature = msg[3]
+        return msg
 
     #TODO: Sign message
     #def sign(self, key):
@@ -75,7 +77,10 @@ class Message(object):
 
 
 def message_decoder(obj):
+    print obj
+    print type(obj)
     if '__type__' in obj and obj['__type__'] == 'Message':
+        print "we're in there"
         return (obj['id_str'], obj['dst_addr'], obj['data'])#, obj['signature'])
 
 
