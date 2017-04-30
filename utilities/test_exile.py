@@ -1,11 +1,23 @@
-import leach_utils
+from leach_utils import *
 
-leach_utils.exile("a")
-leach_utils.exile("b")
-leach_utils.exile("c")
+insert("a")
+insert("b")
+insert("c")
 
-print leach_utils.exiled_list()
+print get_nodes()
 
-leach_utils.welcome("b")
+exile("a")
+exile("b")
+exile("c")
 
-print leach_utils.exiled_list()
+exile("d")
+print get_nodes()
+
+welcome("b")
+
+print get_nodes()
+
+print "before"
+print exiled_nodes()
+print "after"
+print welcomed_nodes()
