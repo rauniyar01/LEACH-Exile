@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import argparse
 from sys import exit
 from node.node import Node
