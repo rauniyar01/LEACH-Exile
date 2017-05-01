@@ -5,12 +5,12 @@ from node_management import *
 
 #Loop through all of the nodes and then call send message
 #Should only be used to transmit exile or welcome messages
-def send_to_all_nodes(msg):
+def send_to_all_nodes(data):
     targets = welcomed_nodes()
     for target in targets:
         dest = socketStr_to_tuple(target)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        send_message(sock, dest, msg)
+        send_message(sock, dest, data)
 
 #Take a socket object, create a json blob, and send it
 #Returns Boolean for success or fail
@@ -22,9 +22,9 @@ def send_message(sock, dest, data):
 
     try:
         sock.connect(dest)
-        sock.send(msg)
+        sock.send(data)
         sock.close()
-    except socketError as e:
+    except socket.error as e:
         print "Could not send message: {}".format(e)
         return False
 
