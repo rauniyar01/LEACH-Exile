@@ -4,19 +4,19 @@ import json
 #########################################
 
 VALID_EXILE = '{"id_str": "127.0.0.1:50001", "data": { \
-"cmd": "exile" \
+"cmd": "exile", \
 "data":"127.0.0.1:50002" \
 } \
 }'
 
 VALID_WELCOME = '{"id_str": "127.0.0.1:50001", "data": { \
-"cmd": "welcome" \
+"cmd": "welcome", \
 "data":"127.0.0.1:50002" \
 } \
 }'
 
 VALID_DATA = '{"id_str": "127.0.0.1:50001", "data": { \
-"cmd": "data" \
+"cmd": "data", \
 "data":"data" \
 } \
 }'
@@ -33,7 +33,7 @@ VALID_FORWARD = '{"id_str": "127.0.0.1:50003", "data": { \
 #Takes in a JSON string, decodes it, and then returns the resultant JSON
 #This will contain a nested JSON object as described by our spec.
 #See any of the above constants for examples
-def json_to_str(data):
+def str_to_json(data):
     return json.loads(data)
 
 #TODO: Encode all of the data into json
@@ -41,11 +41,18 @@ def json_to_str(data):
 #orig_source is only populated if the command is "forward"
 #L2_data is 
 def vals_to_json(id_str, cmd, L2_data, orig_source=None):
-    #build the json from the provided information
-    #have separate cases for each command type
+    j = json.loads(VALID_EXILE)
+    j['id_str'] = id_str
+    j['data'] = L2_data
 
-    #
-    pass
+    if cmd == 'forward' and orig_source is None:
+        raise Exception('Tried to make forward json request without specifying a source')
+
+    elif cmd == 'forward' and orig_source:
+        j['orig_source'] = orig_source
+
+    return j
+
 
 ##TODO: Encode Layer one data 
 #def encode_layer_one():
