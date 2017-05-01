@@ -43,6 +43,7 @@ class Node:
                         welcome(j['data'])
                     elif j['cmd'] == 'exile':
                         exile(j['data'])
+                        print get_nodes()
 
                     sendSock = self._bind('localhost', self.port+1)
                     if goodboye.lower() == 'y' or goodboye == '\n':
