@@ -16,6 +16,3 @@ print get_nodes()
 
 print welcomed_nodes()
 print exiled_nodes()
-
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.binds
