@@ -1,9 +1,9 @@
-import socket
+from sys import exit, path
+path.append("../utilities")
 from multiprocessing import Process, Queue
 from utilities.leach_utils import *
 from utilities.parser import *
 from utilities.node_management import *
-from sys import exit
 from time import sleep
 
 
