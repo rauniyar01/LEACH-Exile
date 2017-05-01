@@ -1,7 +1,7 @@
 import json
 
-VALID_JSON = "{'id_str': '098f6bcd4621d373cade4e832627b4f6', 'dest': '127.0.0.1:50000', 'data': 'valid'}"
-INVALID_JSON ="{'id_str': '098f6bcd4621d373cade4e832627b4f6', 'dest': '127.0.0.1:50000', 'data': 'malicious'}"
+VALID_JSON = "{\"id_str\": \"098f6bcd4621d373cade4e832627b4f6\", \"dest\": \"127.0.0.1:50000\", \"data\": \"valid\"}"
+INVALID_JSON ="{\"id_str\": \"098f6bcd4621d373cade4e832627b4f6\", \"dest\": \"127.0.0.1:50000\", \"data\": \"malicious\"}"
 
 #Addresses will be the keys
 #The value will be True if active
@@ -13,7 +13,7 @@ nodes = {}
 def node_status(node):
     global nodes
     if node not in nodes:
-        return false
+        return False
     else:
         return nodes[node]
         
@@ -24,6 +24,7 @@ def recv_and_fwd(sock, id_str, upstream_addr):
 
     #Forward the message only if the message did not come from the sender
     if recvd.id_str != upstream_addr:
+        print "Forwarding message"
         send_message(sock, id_str, upstream_addr, json.dumps(recvd))
     return recvd
 
@@ -72,9 +73,13 @@ def insert(node):
         nodes[node] = True
         
 #Take a socket object, create a json blob, and send it
+#Returns Boolean for success or fail
 #TODO: Add logic for exiled nodes
 def send_message(sock, id_str, dest, data):
-    
+    #If the node is exiled, return False
+    if not node_status(dest):
+        return False
+
     #Build the json from the supplied data
     data = json.dumps({'id_str': id_str, 'dest': dest, 'data': data})
 
@@ -92,7 +97,14 @@ def send_message(sock, id_str, dest, data):
 #Receive message and return a dictionary
 #This allows you to do forward the entire message later
 #TODO: Add logic for exiled nodes
-def recv_message(socket):
-    data = sock.recv()
-    return json.loads(data)
+def recv_message(sock):
+    #Receive the data
+    data = sock.recv(2048)
+    recvd = json.loads(data)
+
+    #If the node is exiled return the data, else return False
+    if not node_status(recvd.id_str):
+        return recvd
+    else:
+        return False
 
