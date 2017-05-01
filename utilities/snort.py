@@ -17,7 +17,7 @@ def main():
     try:
         while True:
             # This will need to point to /var/log/snort/snort.log.*
-            pcap = rdpcap('/Users/bojak/Projects/SCADA/LEACH-Exile/utilities/{}'.format(argv[1]))
+            pcap = rdpcap('/var/log/snort/{}'.format(argv[1]))
             try:
                 last_pkt = pcap[-1]
             except IndexError:
