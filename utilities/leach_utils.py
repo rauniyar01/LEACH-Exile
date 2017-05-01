@@ -1,4 +1,5 @@
 import json
+from socket import error as socketError
 
 VALID_JSON = "{\"id_str\": \"098f6bcd4621d373cade4e832627b4f6\", \"dest\": \"127.0.0.1:50000\", \"data\": \"valid\"}"
 INVALID_JSON ="{\"id_str\": \"098f6bcd4621d373cade4e832627b4f6\", \"dest\": \"127.0.0.1:50000\", \"data\": \"malicious\"}"
@@ -88,7 +89,7 @@ def send_message(sock, id_str, dest, data):
         sock.connect(dest)
         sock.send(data)
         sock.close()
-    except socket.error as e:
+    except socketError as e:
         print "Could not send message: {}".format(e)
         return False
 
