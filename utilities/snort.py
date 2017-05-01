@@ -1,9 +1,9 @@
-import json
-import os
 from sys import exit, path, argv
 path.append("../node")
 from node import Node
 from scapy.all import *
+from leach_utils import *
+from parser import *
 
 
 def main():
@@ -12,8 +12,7 @@ def main():
 
     alerts = []
 
-    snortNode = Node('snort', 1337)
-    print snortNode
+    snortNode = Node('snort', 13337)
 
     try:
         while True:
@@ -21,14 +20,14 @@ def main():
             pcap = rdpcap('/Users/bojak/Projects/SCADA/LEACH-Exile/utilities/{}'.format(argv[1]))
             try:
                 last_pkt = pcap[-1]
-                print last_pkt.show()
             except IndexError:
                 continue
 
             if last_pkt not in alerts:
                 alerts.append(last_pkt)
-                # Send message to the sink with the bad node ID
-                # send_message(s, 'Snort', 'localhost:50000', '{}'.format(json.loads(str(pkt[TCP].payload))['id_str']))
+                sendSock = snortNode._bind('localhost', 13338)
+                send_message(sendSock, socketStr_to_tuple("localhost:50000"),
+                             vals_to_json(snortNode.id_str, 'exile', str_to_json(last_pkt[TCP].payload)['orig_sender']))
             else:
                 continue
 

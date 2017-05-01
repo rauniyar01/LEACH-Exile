@@ -28,7 +28,7 @@ def main():
 
     # Create node
     first = Node(args.node_type, args.port)
-    print first
+    print 'Node: {} created'.format(first)
     exit(0)
 
 

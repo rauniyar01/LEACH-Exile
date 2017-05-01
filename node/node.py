@@ -1,6 +1,8 @@
 import socket
 from multiprocessing import Process, Queue
 from utilities.leach_utils import *
+from utilities.parser import *
+from utilities.node_management import *
 from sys import exit
 from time import sleep
 
@@ -31,53 +33,89 @@ class Node:
 
     def _node(self, recvSock):
         goodboye = raw_input('Will this node be a goodboye? (Y/n): ')
+        try:
+            while True:
+                if not self.queue.empty():
+                    data = self.queue.get()
+                    j = str_to_json(data)
 
-        while True:
-            if not self.queue.empty():
-                #data = self.queue.get()
-                # Parse the data, see if a node should be added to exile list or welcomed
-                pass
+                    if j['cmd'] == 'welcome':
+                        welcome(j['data'])
+                    elif j['cmd'] == 'exile':
+                        exile(j['data'])
 
-            if goodboye.lower() == 'y' or goodboye == '\n':
-                # send(VALID_JSON) to CH
-                pass
-            else:
-                # send(INVALID_JSON) to CH
-                pass
+                    sendSock = self._bind('localhost', self.port+1)
+                    if goodboye.lower() == 'y' or goodboye == '\n':
+                        send_message(sendSock, socketStr_to_tuple('localhost:50001'), VALID_DATA)
+                    else:
+                        send_message(sendSock, socketStr_to_tuple('localhost:50001'), MALICIOUS_DATA)
 
-            sleep(1)
+                    sendSock.close()
+                sleep(1)
+        except KeyboardInterrupt:
+            exit('Exiting Node.py...')
 
     def clusterhead(self, recvSock):
-        while True:
-            if not self.queue.empty():
-                #data = self.queue.get()
-                # Parse the data, see if a node should be added to exile list or welcomed.
-                # If not, it probably needs to be forwarded to the sink
-                pass
+        try:
+            while True:
+                if not self.queue.empty():
+                    data = self.queue.get()
+                    j = str_to_json(data)
 
-            sleep(1)
+                    sendSock = self._bind('localhost', self.port+1)
+                    if j['cmd'] == 'welcome':
+                        welcome(j['data'])
+                        send_to_all_nodes(vals_to_json(self.id_str, 'welcome', j['data']))
+                    elif j['cmd'] == 'exile':
+                        exile(j['data'])
+                        send_to_all_nodes(vals_to_json(self.id_str, 'exile', j['data']))
+                    elif j['cmd'] == 'data':
+                        send_message(sendSock, socketStr_to_tuple('localhost:50000'),
+                                     vals_to_json(self.id_str, 'forward', j['data'], orig_source=j['id_str']))
+
+                    sendSock.close()
+                sleep(1)
+        except KeyboardInterrupt:
+            exit('Exiting Node.py...')
 
     def sink(self, recvSocklo):
         # Used to get the IP of the main interface so that a socket can be made on it
         recvSockEns33 = self._bind(socket.gethostbyname(socket.gethostname()), self.port+1)
         Process(target=self._listen, args=(recvSockEns33,)).start()
+        try:
+            while True:
+                if not self.queue.empty():
+                    data = self.queue.get()
+                    j = str_to_json(data)
 
-        # Have some data parsing based on what is in self.queue
-        # If it came from CH, send/forward to Snort node
-        # if it came from snort node, see if it is a welcome/exile
+                    sendSock = self._bind('localhost', self.port+1)
+                    if j['cmd'] == 'welcome':
+                        welcome(j['data'])
+                        send_message(sendSock, socketStr_to_tuple('localhost:50001'),
+                                     vals_to_json(self.id_str, 'welcome', j['data']))
+                    elif j['cmd'] == 'exile':
+                        exile(j['data'])
+                        send_message(sendSock, socketStr_to_tuple('localhost:50001'),
+                                     vals_to_json(self.id_str, 'exile', j['data']))
+                    elif j['cmd'] == 'forward':
+                        send_message(sendSock, socketStr_to_tuple(
+                            '{}:{}'.format(socket.gethostbyname(socket.gethostname()[0]), '13337')),
+                                     vals_to_json(self.id_str, 'forward', j['data'], orig_source=j['id_str']))
+
+                    sendSock.close()
+                sleep(1)
+        except KeyboardInterrupt:
+            exit('Exiting Node.py...')
 
     def _listen(self, sock):
             sock.listen(5)
             try:
                 while True:
                     new_sock = sock.accept()
-
-                    # Get Ready to recv data, Will also need to accommodate messages coming to the sink form snort.py
-                    # self.queue.put(data)
-                    #recv(new_sock)
-                    #new_sock.close()
+                    self.queue.put(recv_message(new_sock))
+                    new_sock.close()
             except KeyboardInterrupt:
-                exit('Exitting Thread...')
+                exit('Exiting Thread...')
 
     def _bind(self, ip, port):
         try:

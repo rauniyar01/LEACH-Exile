@@ -68,8 +68,8 @@ def recv_message(sock):
     else:
         return False
 
-def tuple_to_socketStr(tuple):
-    return '{}:{}'.format(tuple[0], tuple[1])
+def tuple_to_socketStr(_tuple):
+    return '{}:{}'.format(_tuple[0], _tuple[1])
 
 
 def socketStr_to_tuple(socketStr):

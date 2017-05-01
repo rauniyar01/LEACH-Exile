@@ -29,6 +29,12 @@ VALID_FORWARD = '{"id_str": "127.0.0.1:50003", "data": { \
 }\
 }'
 
+MALICIOUS_DATA = '{"id_str": "127.0.0.1:50001", "data": { \
+"cmd": "data", \
+"data":"BADBOYE" \
+} \
+}'
+
 
 def str_to_json(data):
     return json.loads(data)
