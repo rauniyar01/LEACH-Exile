@@ -1,6 +1,6 @@
 import socket
 from multiprocessing import Process, Queue
-#from utilities.leach_utils import *
+from utilities.leach_utils import *
 from sys import exit
 from time import sleep
 
@@ -13,7 +13,7 @@ class Node:
 
         recvSock = self._bind('localhost', self.port)
         # Make the listening socket tuple the id_str
-        self.id_str = str(recvSock.getsockname())
+        self.id_str = tuple_to_socketStr(recvSock.getsockname())
 
         Process(target=self._listen, args=(recvSock,)).start()
         sendSock = self._bind('localhost', self.port+1)
