@@ -16,21 +16,20 @@ class Node:
         self.id_str = tuple_to_socketStr(recvSock.getsockname())
 
         Process(target=self._listen, args=(recvSock,)).start()
-        sendSock = self._bind('localhost', self.port+1)
 
         if node_type == 'node':
-            self._node(recvSock, sendSock)
+            self._node(recvSock)
         elif node_type == 'ch':
-            self.clusterhead(recvSock, sendSock)
+            self.clusterhead(recvSock)
         elif node_type == 'sink':
-            self.sink(recvSock, sendSock)
+            self.sink(recvSock)
         elif node_type == 'snort':
             # everything will be done in snort.py, which needs access to node class functions
             pass
         else:
             exit('[!] Error: Somehow gave wrong node_type')
 
-    def _node(self, recvSock, sendSock):
+    def _node(self, recvSock):
         goodboye = raw_input('Will this node be a goodboye? (Y/n): ')
 
         while True:
@@ -48,7 +47,7 @@ class Node:
 
             sleep(1)
 
-    def clusterhead(self, recvSock, sendSock):
+    def clusterhead(self, recvSock):
         while True:
             if not self.queue.empty():
                 #data = self.queue.get()
@@ -58,10 +57,9 @@ class Node:
 
             sleep(1)
 
-    def sink(self, recvSocklo, sendSocklo):
+    def sink(self, recvSocklo):
         # Used to get the IP of the main interface so that a socket can be made on it
         recvSockEns33 = self._bind(socket.gethostbyname(socket.gethostname()), self.port+1)
-        sendSockEns33 = self._bind(socket.gethostbyname(socket.gethostname()), self.port+2)
         Process(target=self._listen, args=(recvSockEns33,)).start()
 
         # Have some data parsing based on what is in self.queue
@@ -72,10 +70,12 @@ class Node:
             sock.listen(5)
             try:
                 while True:
-                    client, address = sock.accept()
-                    client.settimeout(60)
+                    new_sock = sock.accept()
+
                     # Get Ready to recv data, Will also need to accommodate messages coming to the sink form snort.py
                     # self.queue.put(data)
+                    #recv(new_sock)
+                    #new_sock.close()
             except KeyboardInterrupt:
                 exit('Exitting Thread...')
 
