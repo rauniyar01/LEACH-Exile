@@ -109,3 +109,11 @@ def recv_message(sock):
     else:
         return False
 
+
+def tuple_to_socketStr(tuple):
+    return '{}:{}'.format(tuple[0], tuple[1])
+
+
+def socketStr_to_tuple(socketStr):
+    array = socketStr.split(':')
+    return array[0], array[1]
