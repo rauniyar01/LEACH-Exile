@@ -4,7 +4,6 @@ import argparse
 from sys import exit
 from node.node import Node
 from utilities.leach_utils import *
-from utilities.message import *
 
 
 def parse_args():
@@ -27,7 +26,6 @@ def main():
     # Line just used for troubleshooting, should be removed before pulling into master
     # print args.verbose, args.node_type, args.port
 
-    # TODO: Will need to prompt user to see if this node should be a 'G O O D B O Y' or not.
     # Create node
     first = Node(args.node_type, args.port)
     print first

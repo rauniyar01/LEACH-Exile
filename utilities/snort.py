@@ -1,22 +1,9 @@
-import socket
 import json
-from sys import exit, argv
+import os
+from sys import exit, path, argv
+path.append("../node")
+from node import Node
 from scapy.all import *
-from message import send_message
-
-
-def _bind(ip, port):
-    try:
-        print "[*] Attempting to bind on port: {} with ip: {}".format(port, ip)
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.bind((ip, port))
-        s.listen(5)
-        return s
-
-    except socket.error:
-        print "[!] Error: port already in use, incrementing port from {} to {}".format(port, port+1)
-        s = _bind(ip, port+1)
-        return s
 
 
 def main():
@@ -24,13 +11,17 @@ def main():
         exit('Wrong args. Supply the snort logfile')
 
     alerts = []
-    s = _bind('localhost', 1337)
+
+    snortNode = Node('snort', 1337)
+    print snortNode
+
     try:
         while True:
             # This will need to point to /var/log/snort/snort.log.*
             pcap = rdpcap('/Users/bojak/Projects/SCADA/LEACH-Exile/utilities/{}'.format(argv[1]))
             try:
                 last_pkt = pcap[-1]
+                print last_pkt.show()
             except IndexError:
                 continue
 
@@ -42,7 +33,7 @@ def main():
                 continue
 
     except KeyboardInterrupt:
-        exit('Exiting...')
+        exit('Exiting Snory.py...')
 
 
 if __name__ == '__main__':
