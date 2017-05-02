@@ -17,12 +17,12 @@ def send_to_all_nodes(data):
 #Add logic for exiled nodes
 def send_message(sock, dest, data):
     #If the node is exiled, return False
-    if not node_status(dest):
+    if not node_status(tuple_to_socketStr(dest)):
         return False
 
     try:
         sock.connect(dest)
-        sock.send(data)
+        sock.send(json.dumps(data))
         sock.close()
     except socket.error as e:
         print "Could not send message: {}".format(e)
@@ -36,9 +36,9 @@ def recv_message(sock):
     #Receive the data
     data = sock.recv(2048)
     recvd = str_to_json(data)
-
+    print recvd
     #If the node is exiled return the data, else return False
-    if not node_status(recvd.id_str):
+    if not node_status(recvd['id_str']):
         return recvd
     else:
         return False
@@ -49,5 +49,5 @@ def tuple_to_socketStr(_tuple):
 
 def socketStr_to_tuple(socketStr):
     array = socketStr.split(':')
-    return array[0], array[1]
+    return array[0], int(array[1])
 

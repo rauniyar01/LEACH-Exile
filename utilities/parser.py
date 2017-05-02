@@ -43,7 +43,8 @@ def str_to_json(data):
 def vals_to_json(id_str, cmd, L2_data, orig_source=None):
     j = json.loads(VALID_EXILE)
     j['id_str'] = id_str
-    j['data'] = L2_data
+    j['data']['data'] = L2_data
+    j['data']['cmd'] = cmd
 
     if cmd == 'forward' and orig_source is None:
         raise Exception('Tried to make forward json request without specifying a source')
@@ -52,3 +53,4 @@ def vals_to_json(id_str, cmd, L2_data, orig_source=None):
         j['orig_source'] = orig_source
 
     return j
+

@@ -3,7 +3,6 @@
 import argparse
 from sys import exit
 from node.node import Node
-from utilities.leach_utils import *
 
 
 def parse_args():
