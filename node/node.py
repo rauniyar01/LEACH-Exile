@@ -33,25 +33,28 @@ class Node:
 
     def _node(self, recvSock):
         goodboye = raw_input('Will this node be a goodboye? (Y/n): ')
+        sendSock = self._bind('localhost', self.port+1)
+        send_message(sendSock, socketStr_to_tuple('localhost:50001'),
+                     vals_to_json(self.id_str, 'welcome', self.id_str))
         try:
             while True:
+                sendSock = self._bind('localhost', self.port+1)
                 if not self.queue.empty():
                     data = self.queue.get()
                     j = str_to_json(data)
-
                     if j['cmd'] == 'welcome':
+                        insert(j['data'])
                         welcome(j['data'])
                     elif j['cmd'] == 'exile':
                         exile(j['data'])
-                        print get_nodes()
 
-                    sendSock = self._bind('localhost', self.port+1)
                     if goodboye.lower() == 'y' or goodboye == '\n':
-                        send_message(sendSock, socketStr_to_tuple('localhost:50001'), VALID_DATA)
+                        send_message(sendSock, socketStr_to_tuple('localhost:50001'), str_to_json(VALID_DATA))
                     else:
-                        send_message(sendSock, socketStr_to_tuple('localhost:50001'), MALICIOUS_DATA)
+                        send_message(sendSock, socketStr_to_tuple('localhost:50001'), str_to_json(MALICIOUS_DATA))
 
-                    sendSock.close()
+                sendSock.close()
+                print get_nodes()
                 sleep(1)
         except KeyboardInterrupt:
             exit('Exiting Node.py...')
@@ -65,6 +68,7 @@ class Node:
 
                     sendSock = self._bind('localhost', self.port+1)
                     if j['cmd'] == 'welcome':
+                        insert(j['data'])
                         welcome(j['data'])
                         send_to_all_nodes(vals_to_json(self.id_str, 'welcome', j['data']))
                     elif j['cmd'] == 'exile':
@@ -75,6 +79,7 @@ class Node:
                                      vals_to_json(self.id_str, 'forward', j['data'], orig_source=j['id_str']))
 
                     sendSock.close()
+                    print get_nodes()
                 sleep(1)
         except KeyboardInterrupt:
             exit('Exiting Node.py...')
@@ -91,6 +96,7 @@ class Node:
 
                     sendSock = self._bind('localhost', self.port+1)
                     if j['cmd'] == 'welcome':
+                        insert(j['data'])
                         welcome(j['data'])
                         send_message(sendSock, socketStr_to_tuple('localhost:50001'),
                                      vals_to_json(self.id_str, 'welcome', j['data']))
@@ -104,6 +110,7 @@ class Node:
                                      vals_to_json(self.id_str, 'forward', j['data'], orig_source=j['id_str']))
 
                     sendSock.close()
+                    print get_nodes()
                 sleep(1)
         except KeyboardInterrupt:
             exit('Exiting Node.py...')

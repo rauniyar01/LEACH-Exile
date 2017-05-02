@@ -16,8 +16,11 @@ def main():
 
     try:
         while True:
-            # This will need to point to /var/log/snort/snort.log.*
-            pcap = rdpcap('/var/log/snort/{}'.format(argv[1]))
+            try:
+                pcap = rdpcap('/var/log/snort/{}'.format(argv[1]))
+            except scapy.error.Scapy_Exception:
+                continue
+
             try:
                 last_pkt = pcap[-1]
             except IndexError:
