@@ -50,7 +50,7 @@ def vals_to_json(id_str, cmd, L2_data, orig_source=None):
         raise Exception('Tried to make forward json request without specifying a source')
 
     elif cmd == 'forward' and orig_source:
-        j['orig_source'] = orig_source
+        j['data']['orig_source'] = orig_source
 
     return j
 

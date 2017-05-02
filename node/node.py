@@ -1,3 +1,4 @@
+import json
 from sys import exit, path
 path.append("/home/bojak/LEACH-Exile/utilities")
 from multiprocessing import Process, Queue
@@ -12,11 +13,15 @@ class Node:
         self.node_type = node_type
         self.port = port
         self.queue = Queue()
+	insert('172.16.151.156:50001')
 	insert('localhost:50000')
-        recvSock = self._bind('localhost', self.port)
+	if node_type == 'snort':
+		recvSock = self._bind('172.16.151.156', 13337)
+        else:
+		recvSock = self._bind('localhost', self.port)
         # Make the listening socket tuple the id_str
         self.id_str = tuple_to_socketStr(recvSock.getsockname())
-
+	insert(self.id_str)
         Process(target=self._listen, args=(recvSock,)).start()
 
         if node_type == 'node':
@@ -35,13 +40,12 @@ class Node:
         goodboye = raw_input('Will this node be a goodboye? (Y/n): ')
 	sendSock = self._bind('localhost', self.port+1)
 	insert('localhost:50002')
-	print get_nodes()
-        print send_message(sendSock, socketStr_to_tuple('localhost:50002'),
+        send_message(sendSock, socketStr_to_tuple('localhost:50002'),
                      vals_to_json(self.id_str, 'welcome', self.id_str))
         try:
             while True:
+		sendSock = self._bind('localhost', self.port+1)
                 if not self.queue.empty():
-		    sendSock = self._bind('localhost', self.port+1)
 
                     data = self.queue.get()
                     j = data
@@ -50,19 +54,26 @@ class Node:
                         welcome(j['data']['data'])
                     elif j['data']['cmd'] == 'exile':
                         exile(j['data']['data'])
-                    if goodboye.lower() == 'y' or len(goodboye) == 0:
-                        send_message(sendSock, socketStr_to_tuple('localhost:50002'), str_to_json(VALID_DATA))
-                    else:
-                        send_message(sendSock, socketStr_to_tuple('localhost:50002'), str_to_json(MALICIOUS_DATA))
+	        
+		_VALID_DATA = json.loads(VALID_DATA)
+		_MALICIOUS_DATA = json.loads(MALICIOUS_DATA)
+		_VALID_DATA['id_str'] = self.id_str
+		_MALICIOUS_DATA['id_str'] = self.id_str
+		
+		if goodboye.lower() == 'y' or len(goodboye) == 0:
+		    send_message(sendSock, socketStr_to_tuple('localhost:50002'), _VALID_DATA)
+	        else:
+		    send_message(sendSock, socketStr_to_tuple('localhost:50002'), _MALICIOUS_DATA)
 
-                    sendSock.close()
+                sendSock.close()
                 print get_nodes()
-                sleep(1)
+                sleep(2)
         except KeyboardInterrupt:
             exit('Exiting Node.py...')
 
     def clusterhead(self, recvSock):
         try:
+	    insert('localhost:50002')
             while True:
                 if not self.queue.empty():
                     data = self.queue.get()
@@ -71,25 +82,29 @@ class Node:
                     sendSock = self._bind('localhost', self.port+1)
                     if j['data']['cmd'] == 'welcome':
                         insert(j['data']['data'])
-                        welcome(j['data']['data'])
-                        send_to_all_nodes(vals_to_json(self.id_str, 'welcome', j['data']['data']))
+                        if not welcome(j['data']['data']):
+			    sendSock.close()
+			    continue
+                        send_to_all_nodes(self.id_str, vals_to_json(self.id_str, 'welcome', j['data']['data']))
                     elif j['data']['cmd'] == 'exile':
                         exile(j['data']['data'])
-                        send_to_all_nodes(vals_to_json(self.id_str, 'exile', j['data']['data']))
+                        send_to_all_nodes(self.id_str, vals_to_json(self.id_str, 'exile', j['data']['data']))
                     elif j['data']['cmd'] == 'data':
-                        print send_message(sendSock, socketStr_to_tuple('localhost:50000'),
-                                     vals_to_json(self.id_str, 'forward', j['data']['data'], orig_source=j['data']['id_str']))
+                        send_message(sendSock, socketStr_to_tuple('localhost:50000'),
+                                     vals_to_json(self.id_str, 'forward', j['data']['data'], orig_source=j['id_str']))
 
                     sendSock.close()
                     print get_nodes()
-                sleep(1)
+                sleep(2)
         except KeyboardInterrupt:
             exit('Exiting Node.py...')
 
     def sink(self, recvSocklo):
         # Used to get the IP of the main interface so that a socket can be made on it
-        recvSockEns33 = self._bind(socket.gethostbyname(socket.gethostname()), self.port+1)
+        recvSockEns33 = self._bind('172.16.151.156', self.port+1)
         Process(target=self._listen, args=(recvSockEns33,)).start()
+	insert('172.16.151.156:13337')
+	insert('localhost:50000')
         try:
             while True:
                 if not self.queue.empty():
@@ -99,7 +114,9 @@ class Node:
                     sendSock = self._bind('localhost', self.port+1)
                     if j['data']['cmd'] == 'welcome':
                         insert(j['data']['data'])
-                        welcome(j['data']['data'])
+                        if not welcome(j['data']['data']):
+			    sendSock.close()
+			    continue
                         send_message(sendSock, socketStr_to_tuple('localhost:50002'),
                                      vals_to_json(self.id_str, 'welcome', j['data']['data']))
                     elif j['data']['cmd'] == 'exile':
@@ -107,13 +124,13 @@ class Node:
                         send_message(sendSock, socketStr_to_tuple('localhost:50002'),
                                      vals_to_json(self.id_str, 'exile', j['data']['data']))
                     elif j['data']['cmd'] == 'forward':
-                        send_message(sendSock, socketStr_to_tuple(
-                            '{}:{}'.format(socket.gethostbyname(socket.gethostname()[0]), '13337')),
-                                     vals_to_json(self.id_str, 'forward', j['data']['data'], orig_source=j['data']['id_str']))
+                    	sendSock = self._bind('172.16.151.156', self.port+1)
+                        print send_message(sendSock, socketStr_to_tuple('172.16.151.156:13337'),
+				     vals_to_json(self.id_str, 'forward', j['data']['data'], orig_source=j['id_str']))
 
                     sendSock.close()
                     print get_nodes()
-                sleep(1)
+                sleep(2)
         except KeyboardInterrupt:
             exit('Exiting Node.py...')
 

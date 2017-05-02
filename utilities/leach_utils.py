@@ -5,9 +5,11 @@ from node_management import *
 
 #Loop through all of the nodes and then call send message
 #Should only be used to transmit exile or welcome messages
-def send_to_all_nodes(data):
+def send_to_all_nodes(self_id_str, data):
     targets = welcomed_nodes()
     for target in targets:
+	if self_id_str == target:
+	    continue
         dest = socketStr_to_tuple(target)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         send_message(sock, dest, data)

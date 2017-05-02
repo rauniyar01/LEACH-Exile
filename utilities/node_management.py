@@ -30,6 +30,9 @@ def welcome(node):
     global nodes
     if not node_status(node):
         nodes[node] = True
+	return True
+    else:
+        return False
 
 #Change to work with dictionary
 def exiled_nodes():
