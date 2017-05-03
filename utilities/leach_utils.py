@@ -8,7 +8,7 @@ from node_management import *
 def send_to_all_nodes(self_id_str, data):
     targets = welcomed_nodes()
     for target in targets:
-	if self_id_str == target:
+	if self_id_str == target or target == 'localhost:50000' or target == '172.16.151.156:50001':
 	    continue
         dest = socketStr_to_tuple(target)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -40,10 +40,7 @@ def recv_message(sock):
     recvd = str_to_json(data)
     print recvd
     #If the node is exiled return the data, else return False
-    if not node_status(recvd['id_str']):
-        return recvd
-    else:
-        return False
+    return recvd
 
 def tuple_to_socketStr(_tuple):
     return '{}:{}'.format(_tuple[0], _tuple[1])
